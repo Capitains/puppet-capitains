@@ -1,6 +1,5 @@
 # Capitains
-class capitains($static_root,
-                $assets_source,
+class capitains($www_root,
                 $data_root,
                 $app_root,
                 $redis_host,
@@ -11,7 +10,6 @@ class capitains($static_root,
   include capitains::nginx
   include capitains::dependencies
   include capitains::repos
-  include capitains::assets
 
   file { $app_root:
     ensure => directory,
@@ -39,11 +37,6 @@ class capitains($static_root,
 
   file { "${app_root}/hookclean.py":
     content => template('capitains/hookclean.py.erb'),
-  }
-
-  file { "${app_root}/templates":
-    ensure => symlink,
-    target => "${$static_root}/assets/templates"
   }
 
   python::virtualenv { $app_root:

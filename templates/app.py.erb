@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request
-from flask.ext.nemo import Nemo
+from flask_nemo import Nemo
+from flask_nemo.chunker import level_grouper
 from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
 from werkzeug.contrib.cache import RedisCache
 from flask_cache import Cache
+from pkg_resources import resource_filename
+from perseus_nemo_ui import PerseusNemoUi
 import os
      
 d = "<%= @data_root %>"
@@ -27,22 +30,13 @@ nemo = Nemo(
     api_url="/api/cts",
     retriever=nautilus.retriever,
     chunker={
-        "default": Nemo.level_grouper
+        "default": level_grouper
     },
-    css=[
-        "<%= @static_root %>/assets/nemo.secondary/css/theme-ext.css"
-    ],
+    plugins=[PerseusNemoUi()],
     transform={
-        "default": "<%= @static_root %>/assets/xslt/epidocShort.xsl"
+        "default": resource_filename("perseus_nemo_ui","data/assets/static/xslt/epidocShort.xsl")
     },
-    templates = {
-        "passage_footer": "templates/passage_footer.html"
-    }
 )
-# We register its routes
-nemo.register_routes()
-# We register its filters
-nemo.register_filters()
 
 app.debug = True
 if __name__ == "__main__":
