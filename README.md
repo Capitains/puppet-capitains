@@ -1,9 +1,9 @@
 # puppet-capitains
-Puppet Module for CapiTaINs deployment
+Puppet Module for CapiTainS deployment
 
 ## Hiera Support
 
-Defining CapiTaiNs resources in Hiera.
+Defining CapiTainS resources in Hiera.
 
 ```yaml
   capitains::domain: 'cts.example.org'
