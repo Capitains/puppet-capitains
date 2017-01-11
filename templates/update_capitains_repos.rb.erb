@@ -2,6 +2,7 @@
 # vim: set ft=ruby :
 
 @force = (ARGV[0] == "--force")
+@disable = (ARGV[0] == "--disable")
 APP_ROOT = "<%= scope.lookupvar('capitains::app_root') %>"
 DATA_ROOT = "<%= scope.lookupvar('capitains::data_root') %>"
 WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
@@ -29,18 +30,25 @@ end
 if @force
   debug_print "Forcing rebuild whether there is new data or not"
 end
-new_data = false
-REPOS.each do |r|
-  raw_output = `cd #{WORKDIR}/#{r['name']} && git pull`
-  if raw_output !~ /up-to-date/ or @force
-    new_data = true
-    shell("rsync -Pav --delete --exclude .git/ #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
-    shell("#{PYTHON} #{APP_ROOT}/hookclean.py -c #{CI_URL} -r #{r['cibase']} -b #{DATA_ROOT}/#{r['name']}/")
-  end
+if @disable
+  debug_print "Disabled"
 end
 
-if new_data or @force
-  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus flush")
-  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus preprocess")
-  shell("/usr/sbin/service gunicorn restart")
+unless @disable
+  new_data = false
+  REPOS.each do |r|
+    raw_output = `cd #{WORKDIR}/#{r['name']} && git pull`
+    debug_print "#{r['name']} : #{raw_output}"
+    if raw_output !~ /up-to-date/ or @force
+      new_data = true
+      shell("rsync -Pav --delete --exclude .git/ #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
+      shell("#{PYTHON} #{APP_ROOT}/hookclean.py -c #{CI_URL} -r #{r['cibase']} -b #{DATA_ROOT}/#{r['name']}/ -t refs/heads/#{r['branch']}")
+    end
+  end
+
+  if new_data or @force
+    shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus flush")
+    shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus preprocess")
+    shell("/usr/sbin/service gunicorn restart")
+  end
 end
