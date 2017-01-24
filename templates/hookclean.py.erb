@@ -39,5 +39,6 @@ for f in build_results:
         to_remove.append(path)
 
 for f in to_remove:
-  print ("Removing " + f)
-  os.remove(f)
+    print ("Removing " + f)
+    if os.path.isfile(f):
+        os.remove(f)
